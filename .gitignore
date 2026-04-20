@@ -1,0 +1,37 @@
+# 설치 로그 및 리포트 (실행 후 자동 생성)
+install-log-*.txt
+install-report-*.txt
+install-report-*.tmp
+
+# Python 캐시
+__pycache__/
+*.pyc
+*.pyo
+
+# OS 파일
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 에디터 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 로컬 도구 상태
+.omc/
+
+# 환경 변수 및 민감 정보
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.*
+
+# 임시 파일
+*.tmp
+*.bak
+*.orig
