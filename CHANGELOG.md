@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [v1.1.0] - 2026-04-22
+
+### Fixed
+
+- **B1** findstr 오탐 수정 - for 이중 루프 정확 매칭으로 교체
+- **B2** 디스크 여유 공간 체크 추가 - C드라이브 3GB 미만 시 경고 및 중단 선택
+- **B3** timeout /nobreak 추가 - 재시도 대기 중 Ctrl+C 스킵 방지
+- **B4** 설치 카운터 수정 - LEVEL_3: 15->16개, LEVEL_4: 17->18개
+- **B5** PATH_CHECK cursor 제거 - winget PATH 미등록 항목 오탐 방지
+
+### Changed
+
+- **S1** 전체 업데이트 - winget upgrade --all -> 키트 18개 도구 개별 업그레이드
+- **S2** 수동 설치 메뉴 - Antigravity 항목 완전 제거 (메뉴/start/echo 포함)
+- **U1** ANSI 색상 코드 초기화 - Windows 10+ 가상 터미널 시퀀스 자동 활성화
+- **U2** npm 패키지 설치 방식 - 자동 일괄 -> Vercel/Supabase/Stripe/Resend 개별 Y/N 선택
+- **U3** 소요 시간 표시 - 완료 시 총 분/초 화면 출력 및 로그 기록
+
+### Removed
+
+- fix6b.py fix6c.py fix7.py fix8.py fix9.py upgrade6.py - 내부 패치 스크립트 삭제
+
+
 ## [v1.0.0] - 2026-04-20
 
 ### Added

@@ -16,6 +16,9 @@ set LOG_FILE=%~dp0install-log-%REPORT_DATE%.txt
 set START_TIME=%TIME%
 set UPGRADE_MODE=skip
 
+:: ANSI 색상 코드 활성화 (Windows 10+)
+reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
+
 :: 로그 파일 초기화
 > "%LOG_FILE%" echo === 바이브코딩 환경 키트 설치 상세 로그 ===
 >> "%LOG_FILE%" echo 시작: %DATE% %TIME%
@@ -121,6 +124,16 @@ if errorlevel 1 (
 ) else (
     echo  [OK] 인터넷 연결 확인
     >> "%LOG_FILE%" echo OK: 인터넷 연결
+)
+
+:: 디스크 여유 공간 체크 (3GB 미만 경고)
+powershell -nologo -command "if ((Get-PSDrive C).Free/1GB -lt 3) { exit 1 }" >nul 2>&1
+if errorlevel 1 (
+    echo  [경고] C드라이브 여유 공간 3GB 미만 - 설치 중 실패할 수 있습니다.
+    set /p CONT_DISK="  계속하시겠습니까? (y/n): "
+    if /i "!CONT_DISK!" NEQ "y" goto MAIN_MENU
+) else (
+    echo  [OK] 디스크 여유 공간 확인
 )
 
 :: 5. 기존 Node.js 감지 (충돌 안내)
@@ -327,7 +340,7 @@ goto MAIN_MENU
 :INSTALL_LEVEL_3
 cls
 echo.
-echo  [고급 설치] 15개 도구를 설치합니다.
+echo  [고급 설치] 16개 도구를 설치합니다.
 echo.
 >> "%LOG_FILE%" echo === 고급 설치 시작: %TIME% ===
 
@@ -364,7 +377,7 @@ goto MAIN_MENU
 :INSTALL_LEVEL_4
 cls
 echo.
-echo  [올인원 설치] 17개 도구를 설치합니다.
+echo  [올인원 설치] 18개 도구를 설치합니다.
 echo.
 >> "%LOG_FILE%" echo === 올인원 설치 시작: %TIME% ===
 
@@ -492,7 +505,7 @@ if not errorlevel 1 (
 :: 실제 실패 ? 5초 후 1회 자동 재시도
 echo         [재시도] %~1 실패 ? 5초 후 재시도...
 >> "%LOG_FILE%" echo   1차 실패 (errorlevel=!INST_ERR!), 재시도: %TIME%
-timeout /t 5 >nul
+timeout /t 5 /nobreak >nul
 
 winget install --id %~2 --source winget --accept-source-agreements --accept-package-agreements --silent >nul 2>&1
 set RETRY_ERR=!errorlevel!
@@ -591,10 +604,14 @@ if not errorlevel 1 (
 )
 
 echo  [자동] 배포/DB CLI 도구 npm 설치 중...
-call :NPM_INSTALL "Vercel CLI" "vercel"
-call :NPM_INSTALL "Supabase CLI" "supabase"
-call :NPM_INSTALL "Stripe SDK" "stripe"
-call :NPM_INSTALL "Resend SDK" "resend"
+set /p INST_VERCEL="  Vercel CLI 설치할까요? (y/n): "
+if /i "!INST_VERCEL!"=="y" call :NPM_INSTALL "Vercel CLI" "vercel"
+set /p INST_SUPABASE="  Supabase CLI 설치할까요? (y/n): "
+if /i "!INST_SUPABASE!"=="y" call :NPM_INSTALL "Supabase CLI" "supabase"
+set /p INST_STRIPE="  Stripe SDK 설치할까요? (y/n): "
+if /i "!INST_STRIPE!"=="y" call :NPM_INSTALL "Stripe SDK" "stripe"
+set /p INST_RESEND="  Resend SDK 설치할까요? (y/n): "
+if /i "!INST_RESEND!"=="y" call :NPM_INSTALL "Resend SDK" "resend"
 goto :eof
 
 :: ============================================================
@@ -624,6 +641,16 @@ goto :eof
 :: ============================================================
 :MAKE_REPORTS
 set END_TIME=%TIME%
+
+:: 소요 시간 계산
+for /f "tokens=1-3 delims=:." %%a in ("%START_TIME: =0%") do set /a _SS=%%a*3600+%%b*60+%%c
+for /f "tokens=1-3 delims=:." %%a in ("%END_TIME: =0%") do set /a _ES=%%a*3600+%%b*60+%%c
+set /a _EL=_ES-_SS
+if !_EL! LSS 0 set /a _EL+=86400
+set /a _EM=_EL/60
+set /a _EL_S=_EL %% 60
+echo  소요 시간: !_EM!분 !_EL_S!초
+>> "%LOG_FILE%" echo 소요 시간: !_EM!분 !_EL_S!초
 
 if not exist "%REPORT_FILE%.tmp" >> "%REPORT_FILE%.tmp" echo   (설치 항목 없음)
 
@@ -665,7 +692,7 @@ echo.
 echo  ---------------------------------------------------
 echo  [PATH 검증] 현재 터미널에서 인식되는 도구
 echo  ---------------------------------------------------
-for %%c in (git python node npm pnpm bun go rustc rustup flutter dart java gh pwsh ruby php cursor) do (
+for %%c in (git python node npm pnpm bun go rustc rustup flutter dart java gh pwsh ruby php) do (
     where %%c >nul 2>&1
     if not errorlevel 1 echo    [O] %%c
 )
@@ -775,13 +802,8 @@ for %%n in (!SEL:,= !) do set /a TOTAL+=1
 
 :: pnpm(8), Bun(10), npm 도구(19-26) -> Node.js 선행 설치
 set NEED_NODE=
-echo !SEL! | findstr /C:"8" >nul 2>&1
-if not errorlevel 1 set NEED_NODE=1
-echo !SEL! | findstr /C:"10" >nul 2>&1
-if not errorlevel 1 set NEED_NODE=1
-for %%x in (19 20 21 22 23 24 25 26) do (
-    echo !SEL! | findstr /C:"%%x" >nul 2>&1
-    if not errorlevel 1 set NEED_NODE=1
+for %%n in (8 10 19 20 21 22 23 24 25 26) do (
+    for %%s in (!SEL!) do if "%%s"=="%%n" set NEED_NODE=1
 )
 if defined NEED_NODE (
     where node >nul 2>&1
@@ -845,7 +867,10 @@ echo  [업데이트] 설치된 모든 도구를 최신 버전으로 업데이트합니다.
 echo.
 >> "%LOG_FILE%" echo === 전체 업데이트 시작: %TIME% ===
 
-winget upgrade --all --source winget --accept-source-agreements --accept-package-agreements
+for %%p in (Git.Git GitHub.GitLFS Python.Python.3 OpenJS.NodeJS.LTS GitHub.cli Microsoft.PowerShell pnpm.pnpm Oven-sh.Bun Ollama.Ollama Microsoft.VisualStudioCode Microsoft.WindowsTerminal EclipseAdoptium.Temurin.21.JDK GoLang.Go Rustlang.Rustup Google.FlutterSDK Stripe.StripeCLI RubyInstallerTeam.RubyWithDevKit.3.3 PHP.PHP) do (
+    winget upgrade --id %%p --source winget --accept-source-agreements --accept-package-agreements --silent >nul 2>&1
+    if not errorlevel 1 echo  [업그레이드] %%p
+)
 
 >> "%LOG_FILE%" echo 전체 업데이트 완료: %TIME%
 echo.
@@ -960,7 +985,6 @@ echo.
 echo    [1] Cursor     https://cursor.com/ko/download
 echo    [2] Claude Desktop       https://claude.com/ko-kr/download
 echo    [3] GitHub Desktop       https://desktop.github.com/download/
-echo    [4] Antigravity      https://antigravity.google/download
 echo    [0] 메인 메뉴
 echo.
 echo  ---------------------------------------------------
@@ -972,12 +996,10 @@ if "!MAN_CHOICE!"=="0" goto MAIN_MENU
 if "!MAN_CHOICE!"=="1" start "" "https://cursor.com/ko/download"
 if "!MAN_CHOICE!"=="2" start "" "https://claude.com/ko-kr/download"
 if "!MAN_CHOICE!"=="3" start "" "https://desktop.github.com/download/"
-if "!MAN_CHOICE!"=="4" start "" "https://antigravity.google/download"
 
 if "!MAN_CHOICE!"=="1" echo. & echo  브라우저가 열렸습니다. 다운로드 후 설치하세요. & echo. & pause
 if "!MAN_CHOICE!"=="2" echo. & echo  브라우저가 열렸습니다. 다운로드 후 설치하세요. & echo. & pause
 if "!MAN_CHOICE!"=="3" echo. & echo  브라우저가 열렸습니다. 다운로드 후 설치하세요. & echo. & pause
-if "!MAN_CHOICE!"=="4" echo. & echo  브라우저가 열렸습니다. 다운로드 후 설치하세요. & echo. & pause
 goto DO_MANUAL
 
 :: ============================================================
