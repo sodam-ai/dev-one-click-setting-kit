@@ -16,9 +16,6 @@ set LOG_FILE=%~dp0install-log-%REPORT_DATE%.txt
 set START_TIME=%TIME%
 set UPGRADE_MODE=skip
 
-:: ANSI 색상 코드 활성화 (Windows 10+)
-reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
-
 :: 로그 파일 초기화
 > "%LOG_FILE%" echo === 바이브코딩 환경 키트 설치 상세 로그 ===
 >> "%LOG_FILE%" echo 시작: %DATE% %TIME%
@@ -39,7 +36,7 @@ echo    ---------------------------------------------------
 echo    [5] 선택 설치      원하는 것만 골라서
 echo    [6] 업데이트       설치된 도구 전체 최신으로
 echo    [7] 제거           도구 삭제 (개별/전체)
-echo    [8] 수동 설치      Cursor, Claude Desktop 등 다운로드
+echo    [8] 직접 다운로드  공식 사이트 URL 목록 (winget 불가 시)
 echo    [9] 설치 확인      O/X + 버전 상태 표시
 echo    [0] 종료
 echo.
@@ -124,16 +121,6 @@ if errorlevel 1 (
 ) else (
     echo  [OK] 인터넷 연결 확인
     >> "%LOG_FILE%" echo OK: 인터넷 연결
-)
-
-:: 디스크 여유 공간 체크 (3GB 미만 경고)
-powershell -nologo -command "if ((Get-PSDrive C).Free/1GB -lt 3) { exit 1 }" >nul 2>&1
-if errorlevel 1 (
-    echo  [경고] C드라이브 여유 공간 3GB 미만 - 설치 중 실패할 수 있습니다.
-    set /p CONT_DISK="  계속하시겠습니까? (y/n): "
-    if /i "!CONT_DISK!" NEQ "y" goto MAIN_MENU
-) else (
-    echo  [OK] 디스크 여유 공간 확인
 )
 
 :: 5. 기존 Node.js 감지 (충돌 안내)
@@ -340,7 +327,7 @@ goto MAIN_MENU
 :INSTALL_LEVEL_3
 cls
 echo.
-echo  [고급 설치] 16개 도구를 설치합니다.
+echo  [고급 설치] 15개 도구를 설치합니다.
 echo.
 >> "%LOG_FILE%" echo === 고급 설치 시작: %TIME% ===
 
@@ -377,7 +364,7 @@ goto MAIN_MENU
 :INSTALL_LEVEL_4
 cls
 echo.
-echo  [올인원 설치] 18개 도구를 설치합니다.
+echo  [올인원 설치] 17개 도구를 설치합니다.
 echo.
 >> "%LOG_FILE%" echo === 올인원 설치 시작: %TIME% ===
 
@@ -505,7 +492,7 @@ if not errorlevel 1 (
 :: 실제 실패 ? 5초 후 1회 자동 재시도
 echo         [재시도] %~1 실패 ? 5초 후 재시도...
 >> "%LOG_FILE%" echo   1차 실패 (errorlevel=!INST_ERR!), 재시도: %TIME%
-timeout /t 5 /nobreak >nul
+timeout /t 5 >nul
 
 winget install --id %~2 --source winget --accept-source-agreements --accept-package-agreements --silent >nul 2>&1
 set RETRY_ERR=!errorlevel!
@@ -604,14 +591,10 @@ if not errorlevel 1 (
 )
 
 echo  [자동] 배포/DB CLI 도구 npm 설치 중...
-set /p INST_VERCEL="  Vercel CLI 설치할까요? (y/n): "
-if /i "!INST_VERCEL!"=="y" call :NPM_INSTALL "Vercel CLI" "vercel"
-set /p INST_SUPABASE="  Supabase CLI 설치할까요? (y/n): "
-if /i "!INST_SUPABASE!"=="y" call :NPM_INSTALL "Supabase CLI" "supabase"
-set /p INST_STRIPE="  Stripe SDK 설치할까요? (y/n): "
-if /i "!INST_STRIPE!"=="y" call :NPM_INSTALL "Stripe SDK" "stripe"
-set /p INST_RESEND="  Resend SDK 설치할까요? (y/n): "
-if /i "!INST_RESEND!"=="y" call :NPM_INSTALL "Resend SDK" "resend"
+call :NPM_INSTALL "Vercel CLI" "vercel"
+call :NPM_INSTALL "Supabase CLI" "supabase"
+call :NPM_INSTALL "Stripe SDK" "stripe"
+call :NPM_INSTALL "Resend SDK" "resend"
 goto :eof
 
 :: ============================================================
@@ -641,16 +624,6 @@ goto :eof
 :: ============================================================
 :MAKE_REPORTS
 set END_TIME=%TIME%
-
-:: 소요 시간 계산
-for /f "tokens=1-3 delims=:." %%a in ("%START_TIME: =0%") do set /a _SS=%%a*3600+%%b*60+%%c
-for /f "tokens=1-3 delims=:." %%a in ("%END_TIME: =0%") do set /a _ES=%%a*3600+%%b*60+%%c
-set /a _EL=_ES-_SS
-if !_EL! LSS 0 set /a _EL+=86400
-set /a _EM=_EL/60
-set /a _EL_S=_EL %% 60
-echo  소요 시간: !_EM!분 !_EL_S!초
->> "%LOG_FILE%" echo 소요 시간: !_EM!분 !_EL_S!초
 
 if not exist "%REPORT_FILE%.tmp" >> "%REPORT_FILE%.tmp" echo   (설치 항목 없음)
 
@@ -692,7 +665,7 @@ echo.
 echo  ---------------------------------------------------
 echo  [PATH 검증] 현재 터미널에서 인식되는 도구
 echo  ---------------------------------------------------
-for %%c in (git python node npm pnpm bun go rustc rustup flutter dart java gh pwsh ruby php) do (
+for %%c in (git python node npm pnpm bun go rustc rustup flutter dart java gh pwsh ruby php cursor) do (
     where %%c >nul 2>&1
     if not errorlevel 1 echo    [O] %%c
 )
@@ -802,8 +775,13 @@ for %%n in (!SEL:,= !) do set /a TOTAL+=1
 
 :: pnpm(8), Bun(10), npm 도구(19-26) -> Node.js 선행 설치
 set NEED_NODE=
-for %%n in (8 10 19 20 21 22 23 24 25 26) do (
-    for %%s in (!SEL!) do if "%%s"=="%%n" set NEED_NODE=1
+echo !SEL! | findstr /C:"8" >nul 2>&1
+if not errorlevel 1 set NEED_NODE=1
+echo !SEL! | findstr /C:"10" >nul 2>&1
+if not errorlevel 1 set NEED_NODE=1
+for %%x in (19 20 21 22 23 24 25 26) do (
+    echo !SEL! | findstr /C:"%%x" >nul 2>&1
+    if not errorlevel 1 set NEED_NODE=1
 )
 if defined NEED_NODE (
     where node >nul 2>&1
@@ -867,10 +845,7 @@ echo  [업데이트] 설치된 모든 도구를 최신 버전으로 업데이트합니다.
 echo.
 >> "%LOG_FILE%" echo === 전체 업데이트 시작: %TIME% ===
 
-for %%p in (Git.Git GitHub.GitLFS Python.Python.3 OpenJS.NodeJS.LTS GitHub.cli Microsoft.PowerShell pnpm.pnpm Oven-sh.Bun Ollama.Ollama Microsoft.VisualStudioCode Microsoft.WindowsTerminal EclipseAdoptium.Temurin.21.JDK GoLang.Go Rustlang.Rustup Google.FlutterSDK Stripe.StripeCLI RubyInstallerTeam.RubyWithDevKit.3.3 PHP.PHP) do (
-    winget upgrade --id %%p --source winget --accept-source-agreements --accept-package-agreements --silent >nul 2>&1
-    if not errorlevel 1 echo  [업그레이드] %%p
-)
+winget upgrade --all --source winget --accept-source-agreements --accept-package-agreements
 
 >> "%LOG_FILE%" echo 전체 업데이트 완료: %TIME%
 echo.
@@ -976,32 +951,75 @@ goto MAIN_MENU
 :DO_MANUAL
 cls
 echo.
-echo  [수동 설치 안내]
+echo  [직접 다운로드 링크]
+echo  winget 설치가 안 될 때 공식 사이트에서 직접 받으세요.
 echo  ---------------------------------------------------
 echo.
-echo  ★ Cursor -- AI 코딩 에디터 (winget 미지원, 아래 링크에서 다운로드)
-echo     winget으로 설치 불가 -- 아래 링크에서 직접 다운로드
+echo   --- 초보자 도구 ---
+echo    [1]  Git               https://git-scm.com/download/win
+echo    [2]  Python 3          https://www.python.org/downloads/
+echo    [3]  Node.js LTS       https://nodejs.org/en/download
+echo    [4]  VS Code           https://code.visualstudio.com/download
+echo    [5]  Windows Terminal  https://aka.ms/terminal
 echo.
-echo    [1] Cursor     https://cursor.com/ko/download
-echo    [2] Claude Desktop       https://claude.com/ko-kr/download
-echo    [3] GitHub Desktop       https://desktop.github.com/download/
-echo    [0] 메인 메뉴
+echo   --- 중급 도구 ---
+echo    [6]  GitHub CLI        https://cli.github.com/
+echo    [7]  PowerShell 7      https://github.com/PowerShell/PowerShell/releases/latest
+echo    [8]  pnpm              https://pnpm.io/installation
+echo    [9]  Ollama            https://ollama.com/download/windows
+echo    [10] Bun               https://bun.sh/
+echo.
+echo   --- 고급 도구 ---
+echo    [11] Java 21 LTS       https://adoptium.net/
+echo    [12] Flutter           https://docs.flutter.dev/get-started/install/windows
+echo    [13] Go                https://go.dev/dl/
+echo    [14] Rust              https://rustup.rs/
+echo.
+echo   --- 새로운 도구 ---
+echo    [15] Ruby              https://rubyinstaller.org/downloads/
+echo    [16] PHP               https://windows.php.net/download/
+echo.
+echo   --- AI 도구 (별도 설치 필요) ---
+echo    [17] Cursor            https://cursor.com/ko/download
+echo    [18] Claude Desktop    https://claude.com/ko-kr/download
+echo    [19] GitHub Desktop    https://desktop.github.com/download/
+echo.
+echo   --- 개발 확장 CLI ---
+echo    [20] GitHub LFS        https://git-lfs.com/
+echo    [21] Stripe CLI        https://docs.stripe.com/stripe-cli
 echo.
 echo  ---------------------------------------------------
-echo  * 0 = 메인 메뉴로 돌아가기
+echo    [0] 메인 메뉴로
 echo.
 set /p MAN_CHOICE="  번호 입력: "
-
 if "!MAN_CHOICE!"=="0" goto MAIN_MENU
-if "!MAN_CHOICE!"=="1" start "" "https://cursor.com/ko/download"
-if "!MAN_CHOICE!"=="2" start "" "https://claude.com/ko-kr/download"
-if "!MAN_CHOICE!"=="3" start "" "https://desktop.github.com/download/"
 
-if "!MAN_CHOICE!"=="1" echo. & echo  브라우저가 열렸습니다. 다운로드 후 설치하세요. & echo. & pause
-if "!MAN_CHOICE!"=="2" echo. & echo  브라우저가 열렸습니다. 다운로드 후 설치하세요. & echo. & pause
-if "!MAN_CHOICE!"=="3" echo. & echo  브라우저가 열렸습니다. 다운로드 후 설치하세요. & echo. & pause
+set _OPENED=0
+if "!MAN_CHOICE!"=="1"  start "" "https://git-scm.com/download/win"                              & set _OPENED=1
+if "!MAN_CHOICE!"=="2"  start "" "https://www.python.org/downloads/"                              & set _OPENED=1
+if "!MAN_CHOICE!"=="3"  start "" "https://nodejs.org/en/download"                                 & set _OPENED=1
+if "!MAN_CHOICE!"=="4"  start "" "https://code.visualstudio.com/download"                         & set _OPENED=1
+if "!MAN_CHOICE!"=="5"  start "" "https://aka.ms/terminal"                                        & set _OPENED=1
+if "!MAN_CHOICE!"=="6"  start "" "https://cli.github.com/"                                        & set _OPENED=1
+if "!MAN_CHOICE!"=="7"  start "" "https://github.com/PowerShell/PowerShell/releases/latest"       & set _OPENED=1
+if "!MAN_CHOICE!"=="8"  start "" "https://pnpm.io/installation"                                   & set _OPENED=1
+if "!MAN_CHOICE!"=="9"  start "" "https://ollama.com/download/windows"                            & set _OPENED=1
+if "!MAN_CHOICE!"=="10" start "" "https://bun.sh/"                                                & set _OPENED=1
+if "!MAN_CHOICE!"=="11" start "" "https://adoptium.net/"                                          & set _OPENED=1
+if "!MAN_CHOICE!"=="12" start "" "https://docs.flutter.dev/get-started/install/windows"   & set _OPENED=1
+if "!MAN_CHOICE!"=="13" start "" "https://go.dev/dl/"                                             & set _OPENED=1
+if "!MAN_CHOICE!"=="14" start "" "https://rustup.rs/"                                             & set _OPENED=1
+if "!MAN_CHOICE!"=="15" start "" "https://rubyinstaller.org/downloads/"                           & set _OPENED=1
+if "!MAN_CHOICE!"=="16" start "" "https://windows.php.net/download/"                              & set _OPENED=1
+if "!MAN_CHOICE!"=="17" start "" "https://cursor.com/ko/download"                                 & set _OPENED=1
+if "!MAN_CHOICE!"=="18" start "" "https://claude.com/ko-kr/download"                              & set _OPENED=1
+if "!MAN_CHOICE!"=="19" start "" "https://desktop.github.com/download/"                           & set _OPENED=1
+
+if "!MAN_CHOICE!"=="20" start "" "https://git-lfs.com/"                                          & set _OPENED=1
+if "!MAN_CHOICE!"=="21" start "" "https://docs.stripe.com/stripe-cli"                            & set _OPENED=1
+
+if "!_OPENED!"=="1" echo. & echo  브라우저가 열렸습니다. 다운로드 후 설치하세요. & echo. & pause
 goto DO_MANUAL
-
 :: ============================================================
 :: 설치 상태 확인 (O/X)
 :: ============================================================
@@ -1028,7 +1046,14 @@ call :CHECK_ONE "Bun" bun
 echo.
 echo  [ 언어 / 런타임 ]
 call :CHECK_ONE "Java" java
-call :CHECK_ONE "Flutter" flutter
+where flutter >nul 2>&1
+if errorlevel 1 (
+    echo    [X] Flutter
+) else (
+    set _FV=
+    for /f "tokens=2" %%v in ('flutter --version 2^>nul ^| findstr /B "Flutter"') do if not defined _FV set _FV=%%v
+    if defined _FV (echo    [O] Flutter  !_FV!) else echo    [O] Flutter
+)
 call :CHECK_ONE "Dart" dart
 call :CHECK_ONE "Go" go
 call :CHECK_ONE "Rust" rustc
@@ -1045,7 +1070,6 @@ call :CHECK_ONE "Prisma" prisma
 echo.
 echo  [ AI 에디터 ]
 call :CHECK_ONE "Cursor" cursor
-call :CHECK_ONE "Antigravity" antigravity
 call :CHECK_ONE "Claude Code CLI" claude
 
 echo.

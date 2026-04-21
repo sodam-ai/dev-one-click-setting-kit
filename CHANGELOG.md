@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [v1.2.0] - 2026-04-22
+
+### Added
+
+- **F1** [8] 직접 다운로드 메뉴 — 21개 공식 URL 목록 (초보자/중급/고급/새로운/AI도구/개발확장CLI 그룹)
+- **F2** [20] GitHub LFS, [21] Stripe CLI — 개발 확장 CLI 그룹 신규 추가
+
+### Fixed
+
+- **F3** Flutter 버전 표시 수정 — `tokens=2 + findstr /B` 로 깨진 문자 제거, 버전 번호만 출력
+- **F4** Flutter 다운로드 URL 수정 — `flutter.dev/docs/...` (404) → `docs.flutter.dev/get-started/install/windows` (200 OK)
+
+---
+
 ## [v1.1.0] - 2026-04-22
 
 ### Fixed
