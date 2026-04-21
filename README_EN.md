@@ -13,11 +13,12 @@
 2. [What tools get installed?](#what-tools-get-installed)
 3. [How to use — Complete beginner guide](#how-to-use--complete-beginner-guide)
 4. [Installation levels](#installation-levels)
-5. [Key features](#key-features)
-6. [Folder structure](#folder-structure)
-7. [FAQ](#faq)
-8. [Important notes](#important-notes)
-9. [License](#license)
+5. [Direct Download Menu](#direct-download-menu-8)
+6. [Key features](#key-features)
+7. [Folder structure](#folder-structure)
+8. [FAQ](#faq)
+9. [Important notes](#important-notes)
+10. [License](#license)
 
 ---
 
@@ -45,6 +46,7 @@ Before you can start, your PC needs several development tools installed, which t
 | Beginner | Git | Essential for saving and sharing code |
 | Beginner | Python 3 | Core language for AI/ML development |
 | Beginner | Node.js LTS | Required for web dev (Next.js, React, etc.) |
+| Beginner | VS Code | Code editor |
 | Beginner | Windows Terminal | Better terminal experience |
 | Intermediate | GitHub CLI | GitHub command-line operations |
 | Intermediate | PowerShell 7 | Enhanced scripting environment |
@@ -52,15 +54,19 @@ Before you can start, your PC needs several development tools installed, which t
 | Intermediate | Ollama | Run local AI models |
 | Intermediate | Bun | Ultra-fast JS runtime |
 | Advanced | Java 21 LTS | Enterprise backend development |
-| Advanced | Flutter + Dart | Mobile/desktop app development |
+| Advanced | Flutter | Mobile/desktop app development |
 | Advanced | Go | High-performance server development |
 | Advanced | Rust | Systems/security programming |
 | New | Ruby | Web backend (Rails) |
 | New | PHP | Web backend (Laravel) |
+| New | GitHub LFS | Large file storage |
+| New | Stripe CLI | Payment development tool |
 
 ### Optional npm packages
 
 Vercel · Supabase · Stripe CLI · Railway CLI · Prisma · Claude CLI · Uploadthing
+
+> npm packages can be selected one by one with **Y/N** during installation.
 
 ---
 
@@ -76,9 +82,10 @@ Vercel · Supabase · Stripe CLI · Railway CLI · Prisma · Claude CLI · Uploa
 
 #### Step 1 — Download the file
 
-Click the green **`<> Code`** button at the top right of this page  
-→ Click **`Download ZIP`**  
-→ Extract the downloaded ZIP file
+Click **[Releases](../../releases/latest)** on the top right of this page  
+→ Under **Assets**, click `dev-one-click-setting-kit.bat` to save it
+
+> Alternatively: click **`<> Code`** → **`Download ZIP`** → extract the ZIP file.
 
 #### Step 2 — Run as Administrator
 
@@ -93,21 +100,24 @@ A black terminal window will open with a menu.
 Type a number and press **Enter**.
 
 ```
-============================================================
-   Vibe Coder Environment Kit
-============================================================
+===========================================================
+   Vibe Coder Environment Kit | AI Dev Environment Setup
+===========================================================
 
- [1] Beginner Install    ← Start here if you're new
- [2] Intermediate Install
- [3] Advanced Install
- [4] New Tools
- [5] Select Individual Tools
- [6] Update
- [7] Remove (individual)
- [8] Remove All
- [9] Check Installation
- [0] Exit
+   [1] Beginner Install    First-timers        (5 tools,  ~7 min)
+   [2] Intermediate         After Beginner      (11 tools, ~15 min)
+   [3] Advanced             Multi-language dev  (16 tools, ~35 min)
+   [4] New Tools            Extra tools         (18 tools, ~45 min)
+   ---------------------------------------------------
+   [5] Select Individual    Pick what you need
+   [6] Update               Update all npm packages
+   [7] Remove               Remove individual/all tools
+   [8] Direct Download      Official site URLs  (if winget fails)
+   [9] Check Installation   Show O/X + version info
+   [0] Exit
 ```
+
+> If you're new, type **`1`** and press Enter.
 
 #### Step 4 — Handle already-installed tools
 
@@ -118,14 +128,14 @@ How to handle already-installed tools:
   [1] Skip      (keep current version)
   [2] Upgrade   (update to latest)
   [3] Remove    (uninstall only)
-  Choice (default=1): 
+  Choice (default=1):
 ```
 
 > Just press **Enter** to automatically select **[1] Skip**.
 
 #### Step 5 — Check results
 
-After installation, two files are automatically saved in the same folder:
+After installation, two files are automatically saved in the same folder, and total elapsed time is shown on screen.
 
 | File | Contents |
 |------|----------|
@@ -136,14 +146,35 @@ After installation, two files are automatically saved in the same folder:
 
 ## Installation levels
 
-| Level | Who it's for | Total tools |
-|-------|-------------|-------------|
-| **[1] Beginner** | First-time vibe coders | 5 |
-| **[2] Intermediate** | After completing Beginner level | 10 |
-| **[3] Advanced** | Multi-language development | 14 |
-| **[4] New** | Specialized languages (Ruby, PHP) | 16 |
+| Level | Who it's for | Total tools | Est. time |
+|-------|-------------|-------------|-----------|
+| **[1] Beginner** | First-time vibe coders | 5 | ~7 min |
+| **[2] Intermediate** | After completing Beginner level | 11 | ~15 min |
+| **[3] Advanced** | Multi-language development | 16 | ~35 min |
+| **[4] New** | Specialized tools (Ruby, PHP, etc.) | 18 | ~45 min |
 
 > If you're just starting out, **[1] Beginner** level is all you need.
+
+---
+
+## Direct Download Menu ([8])
+
+When winget fails, select **[8]** from the main menu to see official download site URLs.  
+Type a number or **Ctrl+click** a URL to open it in your browser instantly.
+
+```
+[Direct Download Links]
+Type a number OR Ctrl+click a URL to open it in your browser.
+---------------------------------------------------
+  --- Beginner Tools ---     [1] Git  [2] Python  [3] Node.js  [4] VS Code  [5] Windows Terminal
+  --- Intermediate ---       [6] GitHub CLI  [7] PowerShell 7  [8] pnpm  [9] Ollama  [10] Bun
+  --- Advanced ---           [11] Java  [12] Flutter  [13] Go  [14] Rust
+  --- New Tools ---          [15] Ruby  [16] PHP
+  --- AI Tools ---           [17] Cursor  [18] Claude Desktop  [19] GitHub Desktop
+  --- Dev CLI Extensions ---  [20] GitHub LFS  [21] Stripe CLI
+```
+
+> **Ctrl+click**: In the terminal, hold Ctrl and click the URL with your mouse to open the browser.
 
 ---
 
@@ -156,11 +187,15 @@ After installation, two files are automatically saved in the same folder:
 | Auto-retry | Automatically retries once on failure |
 | Portable | Works regardless of BAT file location or filename |
 | Install report | Saves results as a text file automatically |
+| Elapsed time display | Shows total time taken after installation completes |
 | PATH verification | Checks environment variable registration after install |
 | CLI cheat sheet | Shows version check commands after completion |
-| Individual selection | Pick specific tools from a numbered list [1]–[26] |
+| Individual selection | Pick specific tools from [1]–[18] |
+| npm Y/N selection | Choose Vercel/Supabase/etc. one by one |
 | Update menu | Bulk update npm packages |
+| Direct Download menu | 21 official URLs — open with Ctrl+click |
 | Remove menu | Individual or full removal support |
+| Disk space check | Warns and pauses if less than 3 GB free |
 
 ---
 
@@ -170,16 +205,14 @@ After installation, two files are automatically saved in the same folder:
 dev-one-click-setting-kit.bat   ← Main executable (this is all you need)
 README.md                       ← Korean guide
 README_EN.md                    ← English guide (this file)
+CHANGELOG.md                    ← Version history
 LICENSE                         ← License
 PRD/                            ← Development planning docs (reference only)
-  01_PRD.md
-  02_DATA_MODEL.md
-  03_PHASES.md
-  04_PROJECT_SPEC.md
+upgrade_v1.1.0.py               ← v1.1.0 patch record script
 ```
 
 > `install-report-*.txt` and `install-log-*.txt` are generated automatically after running.  
-> These files are listed in `.gitignore` and will not be uploaded to GitHub.
+> `.bak` and log files are listed in `.gitignore` and will not be uploaded to GitHub.
 
 ---
 
@@ -211,6 +244,13 @@ Choose **[5] Select Individual Tools** from the main menu to pick tools one by o
 
 ---
 
+**Q. A tool won't install via winget?**
+
+Select **[8] Direct Download** from the main menu.  
+Type a number or **Ctrl+click** a URL to open the official download page in your browser.
+
+---
+
 **Q. How do I update tools to the latest version?**
 
 Use **[6] Update** from the main menu,  
@@ -229,6 +269,7 @@ Yes. The default **Skip** mode means already-installed tools won't be touched.
 - **Windows only** — Does not work on macOS or Linux.
 - **Internet required** — winget downloads packages from the internet.
 - **Corporate restrictions** — Some enterprise PCs may have winget blocked by IT policy.
+- **Disk space** — Full installation requires about 5 GB free. A warning appears if less than 3 GB is available.
 - **Log files** — `install-log-*.txt` contains no sensitive data, but verify before sharing.
 - **Safe to re-run** — Running again on a configured PC will not break existing installations.
 
