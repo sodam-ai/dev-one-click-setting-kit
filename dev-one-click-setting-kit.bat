@@ -954,6 +954,7 @@ echo.
 echo  [직접 다운로드 링크]
 echo  winget 설치가 안 될 때 공식 사이트에서 직접 받으세요.
 echo  ---------------------------------------------------
+echo  번호를 입력하거나, URL 위에서 Ctrl+클릭 하면 브라우저에서 열립니다.
 echo.
 echo   --- 초보자 도구 ---
 echo    [1]  Git               https://git-scm.com/download/win
